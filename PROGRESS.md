@@ -102,12 +102,21 @@ per the "no silent scope cuts" rule.
 - Serving artifacts (7.5 MB total) committed to the repo so Render can
   build the image straight from GitHub; `render.yaml` blueprint included.
 
-**Blocked: cloud deployment.** Every candidate host (Render, Fly.io,
-Railway) requires an account/credentials that don't exist on this machine
-and can't be created by the agent. Everything is prepped so the deploy is
-one click from the Render dashboard (New → Blueprint → pick the GitHub
-repo). Once deployed, run
-`python scripts/benchmark.py --base-url https://<app>.onrender.com` and put
-the numbers in the README's latency table (placeholder comment marks the
-spot). Until then the README reports only locally measured latency,
-clearly labeled.
+**Deployed (2026-07-06).** Max created the Render account and deployed via
+the blueprint: https://movielens-two-stage-recsys.onrender.com (free tier,
+0.1 CPU). Real load test against the deployed endpoint (500 requests,
+concurrency 8, zero failures): **p50 198.9 ms / p95 300.0 ms /
+p99 597.6 ms, ~38.5 rps**. The gap vs. the 11 ms local-container p50 is
+network round-trip plus the free tier's fractional CPU; fine for a demo.
+Note for demos: free instances sleep when idle, first request takes ~30 s.
+
+**Frontend (added 2026-07-06, after deploy).** The brief's optional demo
+frontend is now built: a single static HTML page (vanilla JS, no build
+step) served by the API at `/`, with two flows — existing-user top-10 and
+cold-start via a searchable movie picker (new `/movies` and `/users/random`
+endpoints back it). Verified in a real browser: both flows render, no
+console errors; Godfather + GoodFellas as cold-start picks return crime
+classics (The Sting, The Untouchables).
+
+**Deviations from the brief:** none beyond the documented ML-1M scale
+decision (Phase 3).

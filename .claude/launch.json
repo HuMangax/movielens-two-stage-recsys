@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "recsys-api",
+      "runtimeExecutable": ".venv/bin/uvicorn",
+      "runtimeArgs": ["src.serving.app:app", "--port", "8210"],
+      "port": 8210
+    }
+  ]
+}
