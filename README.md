@@ -47,8 +47,12 @@ concurrency 8, full two-stage pipeline per request):
 |---|---|---|---|---|
 | local (uvicorn, M1) | 7.1 ms | 10.6 ms | 12.2 ms | ~1,090 req/s |
 | Docker container (colima VM, M1) | 11.3 ms | 16.8 ms | 32.2 ms | ~665 req/s |
+| **deployed** ([Render free tier](https://movielens-two-stage-recsys.onrender.com)) | **198.9 ms** | **300.0 ms** | 597.6 ms | ~38.5 req/s |
 
-<!-- DEPLOYED_LATENCY -->
+Deployed numbers include real network round-trip to Render's servers and the
+free tier's 0.1-CPU instance; 500 requests, zero failures. Live at
+`https://movielens-two-stage-recsys.onrender.com` (free instances sleep when
+idle — the first request after a while takes ~30 s to wake).
 
 ## Design decisions
 
