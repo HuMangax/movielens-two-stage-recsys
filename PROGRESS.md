@@ -84,4 +84,30 @@ full-catalog scoring used in eval (162K × 62K float matrix ≈ 40 GB) and the
 end-to-end iteration would go from ~2 minutes to hours. That trades most of
 the remaining timeline for no change in the architecture story. Noted here
 per the "no silent scope cuts" rule.
-## Phase 4 — Serving & deploy (pending)
+## Phase 4 — Serving & deploy (code done 2026-07-06; cloud deploy pending user account)
+
+**Done**
+- `src/serving/app.py`: FastAPI with `/recommend/{user_id}`,
+  `/recommend/cold-start` (pseudo-embedding from liked movies + synthetic
+  user features), `/health`. Torch-free: stage 1 runs on exported `.npy`
+  embeddings, so the serving image skips PyTorch entirely.
+- Multi-stage `Dockerfile` (python:3.12-slim). First build was 1.86 GB
+  because the stock xgboost wheel bundles CUDA; switching serving to
+  `xgboost-cpu` cut the image to 862 MB. Verified in a real container
+  (colima, since Docker wasn't installed on this machine).
+- `scripts/benchmark.py` (stdlib-only load test). Measured, 500 requests
+  at concurrency 8, zero failures:
+  - uvicorn direct on M1: p50 7.1 ms / p95 10.6 ms / ~1,090 rps
+  - Docker container in colima VM: p50 11.3 ms / p95 16.8 ms / ~665 rps
+- Serving artifacts (7.5 MB total) committed to the repo so Render can
+  build the image straight from GitHub; `render.yaml` blueprint included.
+
+**Blocked: cloud deployment.** Every candidate host (Render, Fly.io,
+Railway) requires an account/credentials that don't exist on this machine
+and can't be created by the agent. Everything is prepped so the deploy is
+one click from the Render dashboard (New → Blueprint → pick the GitHub
+repo). Once deployed, run
+`python scripts/benchmark.py --base-url https://<app>.onrender.com` and put
+the numbers in the README's latency table (placeholder comment marks the
+spot). Until then the README reports only locally measured latency,
+clearly labeled.

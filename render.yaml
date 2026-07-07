@@ -1,0 +1,9 @@
+# Render blueprint: deploys the Dockerfile as a web service.
+# https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: movielens-two-stage-recsys
+    runtime: docker
+    plan: free
+    healthCheckPath: /health
+    autoDeploy: true

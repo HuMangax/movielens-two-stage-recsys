@@ -1,0 +1,10 @@
+# Serving-only dependencies. PyTorch is deliberately absent: the two-tower
+# model is frozen into .npy embedding matrices at training time, so the API
+# only needs NumPy for retrieval and XGBoost for ranking.
+numpy==2.5.1
+pandas==3.0.3
+# -cpu variant: same package minus the bundled CUDA libs (saves ~1.3 GB)
+xgboost-cpu==3.3.0
+pyarrow==24.0.0
+fastapi==0.139.0
+uvicorn==0.50.2

@@ -1,0 +1,11 @@
+.git
+.venv
+data/
+notebooks/
+artifacts/two_tower.pt
+artifacts/eval_results.json
+__pycache__
+**/__pycache__
+*.pyc
+.pytest_cache
+.ruff_cache

@@ -222,4 +222,14 @@ data/ml-1m/
 data/ml-1m.zip
 data/ml-25m/
 data/ml-25m.zip
-artifacts/
+# Artifacts are ignored except the small set needed to serve the trained
+# model (baked into the Docker image) and the eval results backing README.
+artifacts/*
+!artifacts/interactions.parquet
+!artifacts/items.parquet
+!artifacts/item_features.parquet
+!artifacts/user_features.parquet
+!artifacts/user_embeddings.npy
+!artifacts/item_embeddings.npy
+!artifacts/xgb_ranker.json
+!artifacts/eval_results.json
