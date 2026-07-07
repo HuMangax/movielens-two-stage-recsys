@@ -30,6 +30,24 @@
 
 **Deferred / cut**: nothing yet.
 
-## Phase 2 — Retrieval model (pending)
+## Phase 2 — Retrieval model (done, 2026-07-06)
+
+**Done**
+- `src/retrieval/model.py`: two-tower model. User tower = id embedding;
+  item tower = id embedding + linear projection of genre one-hots + learned
+  popularity bias. The bias folds into the exported matrices as an extra
+  dimension, so full-catalog retrieval is one matrix multiply.
+- Loss: BPR (pairwise, one uniformly sampled unseen negative per positive).
+  Chosen over sampled softmax because it directly optimizes pairwise ranking,
+  is the standard baseline for implicit MovieLens, and trains stably at this
+  scale without temperature/normalization tuning.
+- `src/retrieval/train.py`: trains on MPS (~0.8 s/epoch), early stopping on
+  val Recall@100 (candidate-pool recall is what stage 1 is for). Best:
+  **val Recall@100 = 0.4016** (epoch 79). Embeddings exported to artifacts/.
+- `src/retrieval/retrieve.py`: brute-force top-500 candidates (3.5K-item
+  catalog → ANN index would be overhead), plus a CLI for spot checks.
+- Sanity check: user 42 (liked rom-coms/comedies) → Austin Powers, Groundhog
+  Day, Wedding Singer; user 1000 (liked arthouse dramas) → Secrets & Lies,
+  Elizabeth, Rushmore. Clearly personalized vs. the popularity list.
 ## Phase 3 — Ranking & evaluation (pending)
 ## Phase 4 — Serving & deploy (pending)
