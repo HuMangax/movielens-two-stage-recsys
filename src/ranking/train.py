@@ -74,39 +74,43 @@ def main() -> None:
     val_users = rng.choice(unique_users, size=len(unique_users) // 10, replace=False)
     is_val = np.isin(qid, val_users)
 
-    model = xgb.XGBRanker(
-        objective="rank:ndcg",
-        eval_metric="ndcg@10",
-        learning_rate=0.1,
-        max_depth=6,
-        n_estimators=500,
-        subsample=0.8,
-        colsample_bytree=0.8,
-        tree_method="hist",
-        early_stopping_rounds=30,
-        random_state=SEED,
+    # Native API (no sklearn wrapper). DMatrix sorts rows by qid internally.
+    dtrain = xgb.DMatrix(
+        X[~is_val], label=y[~is_val], qid=qid[~is_val], feature_names=FEATURE_COLUMNS
     )
-    model.fit(
-        X[~is_val],
-        y[~is_val],
-        qid=qid[~is_val],
-        eval_set=[(X[is_val], y[is_val])],
-        eval_qid=[qid[is_val]],
-        verbose=25,
+    dval = xgb.DMatrix(
+        X[is_val], label=y[is_val], qid=qid[is_val], feature_names=FEATURE_COLUMNS
+    )
+    params = {
+        "objective": "rank:ndcg",
+        "eval_metric": "ndcg@10",
+        "eta": 0.05,
+        "max_depth": 5,
+        "subsample": 0.8,
+        "colsample_bytree": 0.8,
+        "tree_method": "hist",
+        "seed": SEED,
+    }
+    booster = xgb.train(
+        params,
+        dtrain,
+        num_boost_round=500,
+        evals=[(dval, "val")],
+        early_stopping_rounds=30,
+        verbose_eval=25,
     )
     print(
-        f"Best iteration {model.best_iteration}, "
-        f"early-stop users ndcg@10 = {model.best_score:.4f}"
+        f"Best iteration {booster.best_iteration}, "
+        f"early-stop users ndcg@10 = {booster.best_score:.4f}"
     )
 
-    importances = sorted(
-        zip(FEATURE_COLUMNS, model.feature_importances_), key=lambda t: -t[1]
-    )
-    print("Feature importances (gain):")
-    for name, imp in importances:
-        print(f"  {name:22s} {imp:.3f}")
+    gains = booster.get_score(importance_type="gain")
+    total = sum(gains.values()) or 1.0
+    print("Feature importances (share of gain):")
+    for name, imp in sorted(gains.items(), key=lambda t: -t[1]):
+        print(f"  {name:22s} {imp / total:.3f}")
 
-    model.save_model(RANKER_PATH)
+    booster.save_model(RANKER_PATH)
     print(f"Saved ranker to {RANKER_PATH}")
 
 
