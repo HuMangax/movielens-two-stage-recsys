@@ -216,3 +216,10 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Project-specific
+data/ml-1m/
+data/ml-1m.zip
+data/ml-25m/
+data/ml-25m.zip
+artifacts/

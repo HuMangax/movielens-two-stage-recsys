@@ -1,0 +1,8 @@
+torch==2.12.1
+numpy==2.5.1
+pandas==3.0.3
+xgboost==3.3.0
+scipy==1.18.0
+pyarrow==24.0.0
+fastapi==0.139.0
+uvicorn[standard]==0.50.2
