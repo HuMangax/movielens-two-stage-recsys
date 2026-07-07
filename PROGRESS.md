@@ -110,7 +110,13 @@ p99 597.6 ms, ~38.5 rps**. The gap vs. the 11 ms local-container p50 is
 network round-trip plus the free tier's fractional CPU; fine for a demo.
 Note for demos: free instances sleep when idle, first request takes ~30 s.
 
+**Frontend (added 2026-07-06, after deploy).** The brief's optional demo
+frontend is now built: a single static HTML page (vanilla JS, no build
+step) served by the API at `/`, with two flows — existing-user top-10 and
+cold-start via a searchable movie picker (new `/movies` and `/users/random`
+endpoints back it). Verified in a real browser: both flows render, no
+console errors; Godfather + GoodFellas as cold-start picks return crime
+classics (The Sting, The Untouchables).
+
 **Deviations from the brief:** none beyond the documented ML-1M scale
-decision (Phase 3) and the optional frontend, which was not built (time
-went to deploy verification; the FastAPI `/docs` page serves as the live
-demo surface).
+decision (Phase 3).

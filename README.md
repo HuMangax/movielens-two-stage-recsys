@@ -81,6 +81,14 @@ idle — the first request after a while takes ~30 s to wake).
   scoring alone is a 162K×62K matrix). Documented in
   [PROGRESS.md](PROGRESS.md).
 
+## Live demo
+
+**https://movielens-two-stage-recsys.onrender.com** — pick an existing user
+id or search for a few movies you like (cold start) and get top-10
+recommendations from the full two-stage pipeline. Plain-HTML/vanilla-JS page
+served by the API itself ([src/serving/static/index.html](src/serving/static/index.html));
+no build step, no CORS. Free-tier host: first request after idle takes ~30 s.
+
 ## API
 
 ```bash

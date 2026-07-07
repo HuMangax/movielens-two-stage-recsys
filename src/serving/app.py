@@ -11,10 +11,13 @@ user/item embedding matrices at training time, so stage 1 is a NumPy
 matrix multiply and stage 2 is an XGBoost predict.
 """
 
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 import xgboost as xgb
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
 from src.config import (
@@ -49,6 +52,7 @@ class Recommendation(BaseModel):
     rank: int
     movie_id: int
     title: str
+    genres: str
     score: float
 
 
@@ -83,10 +87,17 @@ class ServingState:
 
         items = load_items()
         self.item_titles = items.set_index("item_idx")["title"]
+        self.item_genres_str = items.set_index("item_idx")["genres"]
         self.item_movie_ids = items.set_index("item_idx")["movie_id"]
         self.movie_id_to_idx = dict(
             zip(items["movie_id"].tolist(), items["item_idx"].tolist())
         )
+        # Full catalog for the frontend's cold-start picker (~3.5K rows).
+        self.movie_catalog = [
+            {"movie_id": int(m), "title": t, "genres": g}
+            for m, t, g in zip(items["movie_id"], items["title"], items["genres"])
+        ]
+        self.known_user_ids = sorted(self.user_id_to_idx)
         # Fallback user stats for cold-start requests.
         self.global_mean_rating = float(
             interactions.loc[interactions["split"] == "train", "rating"].mean()
@@ -138,15 +149,38 @@ def run_two_stage(
             rank=i + 1,
             movie_id=int(s.item_movie_ids.loc[item]),
             title=str(s.item_titles.loc[item]),
+            genres=str(s.item_genres_str.loc[item]),
             score=round(float(ranker_scores[j]), 4),
         )
         for i, (j, item) in enumerate(zip(top, cand[top]))
     ]
 
 
+STATIC_DIR = Path(__file__).parent / "static"
+
+
+@app.get("/", include_in_schema=False)
+def index() -> FileResponse:
+    return FileResponse(STATIC_DIR / "index.html")
+
+
 @app.get("/health")
 def health() -> dict:
     return {"status": "ok", "n_users": len(state.user_vecs), "n_items": len(state.item_vecs)}
+
+
+@app.get("/movies")
+def movies() -> list[dict]:
+    """Catalog for the frontend's cold-start movie picker."""
+    return state.movie_catalog
+
+
+@app.get("/users/random")
+def random_user() -> dict:
+    """A real user id, for the demo's 'surprise me' button."""
+    import random
+
+    return {"user_id": int(random.choice(state.known_user_ids))}
 
 
 @app.get("/recommend/{user_id}", response_model=RecommendResponse)
